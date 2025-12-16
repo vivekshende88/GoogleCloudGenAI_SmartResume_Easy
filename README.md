@@ -5,7 +5,7 @@ streamlit
 google-generativeai
 python-dotenv
 
-## 🚀 How to Run
+## How to Run
 
 1. Install Python 3.10+
 2. Run:
