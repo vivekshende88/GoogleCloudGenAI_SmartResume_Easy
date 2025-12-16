@@ -3,10 +3,10 @@ import google.generativeai as genai
 from fpdf import FPDF
 from io import BytesIO
 
-# ----------------- Streamlit Page -----------------
+# Streamlit Page
 st.set_page_config(page_title="Smart Resume Creator", layout="wide")
 
-# ----------------- Custom CSS for professional styling -----------------
+
 st.markdown("""
 <style>
 body { font-family: 'Arial', sans-serif; }
@@ -36,7 +36,7 @@ body { font-family: 'Arial', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ----------------- Theme Selection -----------------
+# Theme Selection
 theme = st.radio("Theme:", ["Day", "Night"], horizontal=True)
 if theme == "Day":
     primary_color = "#0F111A"
@@ -45,7 +45,7 @@ else:
     primary_color = "#FFFFFF"
     bg_color = "#0F111A"
 
-# ----------------- Header -----------------
+
 st.markdown(
     f"""
     <div style='background-color:{bg_color}; color:{primary_color}; padding: 15px; border-radius: 8px; position: relative;'>
@@ -56,12 +56,12 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# ----------------- API Key -----------------
-API_KEY = "AIzaSyByiSvU2EGqQCP8y5TFBqAF_87jVRMHEBs"  # Replace with your Gemini API key
+
+API_KEY = "# Replace with your Gemini API key"  
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# ----------------- PDF Utilities -----------------
+
 def safe_pdf_line(line, max_token_len=50):
     """Break long words to prevent PDF errors."""
     safe_line = ""
@@ -77,38 +77,37 @@ def add_section(pdf, title, content, bullet_color=(0,102,204)):
     """Add section with colored bullets and header."""
     if not content.strip(): return
 
-    # Section header
+
     pdf.set_fill_color(*bullet_color)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("DejaVu", "B", 14)
     pdf.cell(pdf.w - 2*pdf.l_margin, 10, f" {title} ", ln=1, fill=True)
     pdf.ln(2)
 
-    # Section content
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("DejaVu", "", 12)
 
     for line in content.split("\n"):
         line = line.strip()
         if not line: continue
-        # Bullet points for skills/projects
+
         if "," in line and title.upper() in ["SKILLS", "PROJECTS"]:
             for item in line.split(","):
                 pdf.set_text_color(*bullet_color)
-                pdf.cell(5)  # small left indent
+                pdf.cell(5)  
                 pdf.cell(3, 3, "\u2022")
                 pdf.set_text_color(0,0,0)
                 pdf.multi_cell(pdf.w - 2*pdf.l_margin - 10, 8, f" {safe_pdf_line(item.strip())}")
         else:
             pdf.multi_cell(pdf.w - 2*pdf.l_margin, 8, safe_pdf_line(line))
     pdf.ln(5)
-    # Separator line
+
     pdf.set_draw_color(*bullet_color)
     pdf.set_line_width(0.5)
     pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.l_margin, pdf.get_y())
     pdf.ln(3)
 
-# ----------------- Resume Generator -----------------
+
 def generate_resume(prompt):
     try:
         response = model.generate_content(prompt)
@@ -116,7 +115,6 @@ def generate_resume(prompt):
     except Exception as e:
         return f"AI generation failed: {str(e)}"
 
-# ----------------- User Input -----------------
 st.subheader("Enter Your Details")
 col1, col2 = st.columns(2)
 
@@ -133,7 +131,7 @@ with col2:
     projects = st.text_area("Projects")
     education = st.text_area("Education")
 
-# ----------------- Generate Resume -----------------
+
 if st.button("Generate Resume"):
     if not name.strip():
         st.error("Name is required!")
@@ -161,7 +159,7 @@ if st.button("Generate Resume"):
         st.subheader("Generated Resume")
         st.text_area("Resume Output", resume_text, height=450)
 
-        # ----------------- PDF Creation -----------------
+
         pdf = FPDF()
         pdf.add_page()
         # Add fonts for Unicode
@@ -173,7 +171,7 @@ if st.button("Generate Resume"):
 
         page_width = pdf.w - 2*pdf.l_margin
 
-        # Header
+ 
         pdf.set_fill_color(0, 102, 204)
         pdf.set_text_color(255, 255, 255)
         pdf.set_font("DejaVu", "B", 22)
@@ -186,7 +184,6 @@ if st.button("Generate Resume"):
         pdf.multi_cell(page_width, 8, safe_pdf_line(f"LinkedIn: {linkedin} | GitHub: {github}"))
         pdf.ln(5)
 
-        # Sections
         sections = ["SUMMARY", "SKILLS", "EXPERIENCE", "PROJECTS", "EDUCATION"]
         for sec in sections:
             if sec in resume_text:
@@ -200,7 +197,7 @@ if st.button("Generate Resume"):
                 sec_content = content[:next_sec_idx].strip()
                 add_section(pdf, sec, sec_content)
 
-        # ----------------- Download PDF -----------------
+
         pdf_buffer = BytesIO()
         pdf.output(pdf_buffer)
         pdf_buffer.seek(0)
